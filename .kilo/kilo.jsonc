@@ -1,0 +1,28 @@
+{
+  "$schema": "https://app.kilo.ai/config.json",
+  "provider": {
+    "lmstudio": {
+      "models": {
+        "kwaipilot_kat-coder-v2.5-dev": {
+          "name": "kwaipilot_kat-coder-v2.5-dev"
+        },
+        "qwythos-9b-claude-mythos-5-1m": {
+          "name": "qwythos-9b-claude-mythos-5-1m"
+        }
+        ,
+        "qwen3.8-27b-ud@q5_k_xl": {
+          "name": "qwen3.8-27b-ud@q5_k_xl"
+        }
+        ,
+        "qwen/qwen3.8-27b": {
+          "name": "qwen/qwen3.8-27b"
+        }
+                        ,
+        "qwen3.8-27b-ud@q6_k_xl": {
+          "name": "qwen3.8-27b-ud@q6_k_xl"
+        }
+      }
+      }
+    }
+  }
+
