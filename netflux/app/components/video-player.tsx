@@ -29,12 +29,33 @@ export default function VideoPlayer() {
   const [loop, setLoop] = useState(false);
   const [playbackRate, setPlaybackRate] = useState(1);
   const [isFullscreen, setIsFullscreen] = useState(false);
+  // iOS inline-fullscreen mode never sets document.fullscreenElement, so track it separately.
+  const iosInlineFsRef = useRef(false);
 
   useEffect(() => {
-    const onFsChange = () =>
-      setIsFullscreen(Boolean(document.fullscreenElement));
-    document.addEventListener("fullscreenchange", onFsChange);
-    return () => document.removeEventListener("fullscreenchange", onFsChange);
+    type WebkitDoc = Document & { webkitFullscreenElement?: Element | null };
+    const doc = document as WebkitDoc;
+    const syncFromDocument = () =>
+      setIsFullscreen(
+        Boolean(document.fullscreenElement || doc.webkitFullscreenElement),
+      );
+    const onIosBegin = () => {
+      iosInlineFsRef.current = true;
+      setIsFullscreen(true);
+    };
+    const onIosEnd = () => {
+      iosInlineFsRef.current = false;
+      setIsFullscreen(false);
+    };
+
+    document.addEventListener("fullscreenchange", syncFromDocument);
+    videoRef.current?.addEventListener("webkitbeginfullscreen", onIosBegin);
+    videoRef.current?.addEventListener("webkitendfullscreen", onIosEnd);
+    return () => {
+      document.removeEventListener("fullscreenchange", syncFromDocument);
+      videoRef.current?.removeEventListener("webkitbeginfullscreen", onIosBegin);
+      videoRef.current?.removeEventListener("webkitendfullscreen", onIosEnd);
+    };
   }, []);
 
   const togglePlay = useCallback(() => {
@@ -68,10 +89,42 @@ export default function VideoPlayer() {
   };
 
   const toggleFullscreen = () => {
-    const el = containerRef.current;
-    if (!el) return;
-    if (document.fullscreenElement) void document.exitFullscreen();
-    else void el.requestFullscreen();
+    const container = containerRef.current;
+    const video = videoRef.current;
+    if (!container || !video) return;
+
+    type WebkitVideo = HTMLVideoElement & {
+      webkitEnterFullscreen?: () => void;
+      webkitExitFullscreen?: () => void;
+    };
+    type WebkitDoc = Document & {
+      webkitFullscreenElement?: Element | null;
+      webkitExitFullscreen?: () => Promise<void> | void;
+    };
+
+    const doc = document as WebkitDoc;
+    const v = video as WebkitVideo;
+    const c = container as HTMLElement & {
+      webkitRequestFullscreen?: () => void;
+    };
+
+    try {
+      // Exit whichever fullscreen mode is active.
+      if (document.fullscreenElement) return void document.exitFullscreen();
+      if (doc.webkitFullscreenElement) return doc.webkitExitFullscreen?.();
+      if (iosInlineFsRef.current) return v.webkitExitFullscreen?.();
+
+      // Enter: iOS Safari has no element Fullscreen API — use the video's
+      // native inline-fullscreen mode instead.
+      if (typeof v.webkitEnterFullscreen === "function") {
+        v.webkitEnterFullscreen();
+        return;
+      }
+      if (c.requestFullscreen) void c.requestFullscreen();
+      else c.webkitRequestFullscreen?.();
+    } catch {
+      // Fullscreen APIs can throw when interrupted or unsupported — safe to ignore.
+    }
   };
 
   const loadFile = (file: File | undefined) => {
