@@ -167,7 +167,7 @@ export default function VideoPlayer() {
   return (
     <div
       ref={containerRef}
-      className="group w-full overflow-hidden rounded-xl bg-black shadow-lg"
+      className="group w-full overflow-hidden rounded-md bg-black shadow-lg"
     >
       <video
         ref={videoRef}
