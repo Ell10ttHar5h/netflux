@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 
 const PRIMARY_SOURCE =
-  "/familyontheedge.mp4";
+  "/How To Train Your Dragon 2_t02.mp4"; // Replace with your primary video source URL
 const FALLBACK_SOURCE = "/sample.mp4";
 
 function formatTime(seconds: number): string {
@@ -19,7 +19,7 @@ export default function VideoPlayer() {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const [src, setSrc] = useState(PRIMARY_SOURCE);
-  const [fileName, setFileName] = useState("familyontheedge.mp4");
+  const [fileName, setFileName] = useState(PRIMARY_SOURCE);
   const [usingFallback, setUsingFallback] = useState(false);
   const [isPlaying, setIsPlaying] = useState(false);
   const [currentTime, setCurrentTime] = useState(0);
