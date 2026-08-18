@@ -16,7 +16,6 @@ function formatTime(seconds: number): string {
 export default function VideoPlayer() {
   const videoRef = useRef<HTMLVideoElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
-  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const [src, setSrc] = useState(PRIMARY_SOURCE);
   const [fileName, setFileName] = useState(PRIMARY_SOURCE);
@@ -27,7 +26,6 @@ export default function VideoPlayer() {
   const [volume, setVolume] = useState(1);
   const [muted, setMuted] = useState(false);
   const [loop, setLoop] = useState(false);
-  const [playbackRate, setPlaybackRate] = useState(1);
   const [isFullscreen, setIsFullscreen] = useState(false);
   // iOS inline-fullscreen mode never sets document.fullscreenElement, so track it separately.
   const iosInlineFsRef = useRef(false);
@@ -125,13 +123,6 @@ export default function VideoPlayer() {
     } catch {
       // Fullscreen APIs can throw when interrupted or unsupported — safe to ignore.
     }
-  };
-
-  const loadFile = (file: File | undefined) => {
-    if (!file) return;
-    setSrc(URL.createObjectURL(file));
-    setFileName(file.name);
-    setUsingFallback(false);
   };
 
   useEffect(() => {
@@ -250,25 +241,6 @@ export default function VideoPlayer() {
           </div>
 
           <label className="flex items-center gap-2">
-            Speed
-            <select
-              value={playbackRate}
-              onChange={(e) => {
-                const rate = Number(e.target.value);
-                setPlaybackRate(rate);
-                if (videoRef.current) videoRef.current.playbackRate = rate;
-              }}
-              className="rounded-md border border-zinc-700 bg-zinc-800 px-2 py-1"
-            >
-              {[0.5, 1, 1.5, 2].map((r) => (
-                <option key={r} value={r}>
-                  {r}x
-                </option>
-              ))}
-            </select>
-          </label>
-
-          <label className="flex items-center gap-2">
             <input
               type="checkbox"
               checked={loop}
@@ -279,19 +251,6 @@ export default function VideoPlayer() {
           </label>
 
           <div className="ml-auto flex items-center gap-2">
-            <button
-              onClick={() => fileInputRef.current?.click()}
-              className="rounded-md border border-zinc-600 px-3 py-1.5 transition-colors hover:bg-zinc-700"
-            >
-              Open file…
-            </button>
-            <input
-              ref={fileInputRef}
-              type="file"
-              accept="video/*"
-              className="hidden"
-              onChange={(e) => loadFile(e.target.files?.[0])}
-            />
             <button
               onClick={toggleFullscreen}
               aria-label="Toggle fullscreen"
@@ -305,7 +264,7 @@ export default function VideoPlayer() {
         {usingFallback && (
           <p className="text-xs font-medium text-amber-400">
             Primary source failed to load — showing local sample. Fix the
-            PRIMARY_SOURCE url in video-player.tsx, or pick a file manually.
+            PRIMARY_SOURCE url in video-player.tsx.
           </p>
         )}
         <p className="truncate text-xs text-zinc-400">{fileName}</p>
