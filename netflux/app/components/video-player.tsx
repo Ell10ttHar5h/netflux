@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 
 const PRIMARY_SOURCE =
-  "/How To Train Your Dragon 2_t02.mp4"; // Replace with your primary video source URL
+  "/scan2.mp4"; // Replace with your primary video source URL
 const FALLBACK_SOURCE = "/sample.mp4";
 
 function formatTime(seconds: number): string {
@@ -26,6 +26,7 @@ export default function VideoPlayer() {
   const [volume, setVolume] = useState(1);
   const [muted, setMuted] = useState(false);
   const [loop, setLoop] = useState(false);
+  const [playbackRate, setPlaybackRate] = useState(1);
   const [isFullscreen, setIsFullscreen] = useState(false);
   // iOS inline-fullscreen mode never sets document.fullscreenElement, so track it separately.
   const iosInlineFsRef = useRef(false);
@@ -239,6 +240,25 @@ export default function VideoPlayer() {
               className="h-1 w-24 cursor-pointer accent-white"
             />
           </div>
+
+          <label className="flex items-center gap-2">
+            Speed
+            <select
+              value={playbackRate}
+              onChange={(e) => {
+                const rate = Number(e.target.value);
+                setPlaybackRate(rate);
+                if (videoRef.current) videoRef.current.playbackRate = rate;
+              }}
+              className="rounded-md border border-zinc-700 bg-zinc-800 px-2 py-1"
+            >
+              {[0.5, 1, 1.5, 2].map((r) => (
+                <option key={r} value={r}>
+                  {r}x
+                </option>
+              ))}
+            </select>
+          </label>
 
           <label className="flex items-center gap-2">
             <input
