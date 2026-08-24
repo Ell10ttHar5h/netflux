@@ -245,6 +245,7 @@ export default function VideoPlayer() {
             Speed
             <select
               value={playbackRate}
+              suppressHydrationWarning
               onChange={(e) => {
                 const rate = Number(e.target.value);
                 setPlaybackRate(rate);
