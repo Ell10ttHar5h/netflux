@@ -64,6 +64,44 @@ export default function VideoPlayer() {
     else video.pause();
   }, []);
 
+  const useFallback = useCallback(() => {
+    if (src === PRIMARY_SOURCE) {
+      setSrc(FALLBACK_SOURCE);
+      setFileName("Local sample — primary source unavailable");
+      setUsingFallback(true);
+      setCurrentTime(0);
+      setDuration(0);
+    }
+  }, [src]);
+
+  // The browser can fire loadedmetadata (and error) *before* React's
+  // synthetic listeners are attached on fast/cached loads — the event is
+  // then lost, duration stays 0, and the seek bar is dead (max=0).
+  // Read the value directly from the element and also listen natively
+  // for late-arriving metadata.
+  useEffect(() => {
+    const video = videoRef.current;
+    if (!video) return;
+
+    const syncDuration = () => {
+      if (Number.isFinite(video.duration) && video.duration > 0) {
+        setDuration(video.duration);
+      }
+    };
+
+    syncDuration();
+    video.addEventListener("loadedmetadata", syncDuration);
+    video.addEventListener("durationchange", syncDuration);
+
+    // Same race applies to load errors (e.g. a cached 404).
+    if (video.error) useFallback();
+
+    return () => {
+      video.removeEventListener("loadedmetadata", syncDuration);
+      video.removeEventListener("durationchange", syncDuration);
+    };
+  }, [src, useFallback]);
+
   const seekTo = (time: number) => {
     const video = videoRef.current;
     if (!video) return;
@@ -172,15 +210,7 @@ export default function VideoPlayer() {
         onPause={() => setIsPlaying(false)}
         onTimeUpdate={(e) => setCurrentTime(e.currentTarget.currentTime)}
         onLoadedMetadata={(e) => setDuration(e.currentTarget.duration)}
-        onError={() => {
-          if (src === PRIMARY_SOURCE) {
-            setSrc(FALLBACK_SOURCE);
-            setFileName("Local sample — primary source unavailable");
-            setUsingFallback(true);
-            setCurrentTime(0);
-            setDuration(0);
-          }
-        }}
+        onError={useFallback}
         className="aspect-video w-full cursor-pointer bg-black"
       >
         Your browser does not support the video tag.
