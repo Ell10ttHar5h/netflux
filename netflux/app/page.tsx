@@ -1,11 +1,4 @@
-"use client";
-
-import dynamic from "next/dynamic";
-
-// Video player is client-side only: skip SSR and load it in the browser.
-const VideoPlayer = dynamic(() => import("./components/video-player"), {
-  ssr: false,
-});
+import VideoPlayer from "./components/video-player";
 
 export default function Home() {
   return (
