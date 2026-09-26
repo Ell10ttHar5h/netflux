@@ -12,7 +12,8 @@ export default function Home() {
       <main className="flex w-full max-w-4xl flex-col gap-6 px-6 py-12">
         <VideoPlayer />
         <p className="text-sm text-zinc-500 dark:text-zinc-400">
-          Shortcuts: Space/K play-pause, ←/→ seek 5s, M mute, F fullscreen.
+          Shortcuts: Space/K play-pause, ←/→ seek 5s, M mute, C subtitles, F
+          fullscreen.
         </p>
       </main>
     </div>

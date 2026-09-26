@@ -3,8 +3,9 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 
 const PRIMARY_SOURCE =
-  "/scan30fps.mp4"; // Replace with your primary video source URL
+  "race to the edge\\title_t04\\title_t04.mp4"; // Replace with your primary video source URL
 const FALLBACK_SOURCE = "/sample.mp4";
+const SUBTITLE_SOURCE = "race to the edge\\title_t04\\title_t04.vtt";
 
 function formatTime(seconds: number): string {
   if (!Number.isFinite(seconds)) return "0:00";
@@ -28,6 +29,7 @@ export default function VideoPlayer() {
   const [loop, setLoop] = useState(false);
   const [playbackRate, setPlaybackRate] = useState(1);
   const [isFullscreen, setIsFullscreen] = useState(false);
+  const [subtitlesOn, setSubtitlesOn] = useState(false);
   // iOS inline-fullscreen mode never sets document.fullscreenElement, so track it separately.
   const iosInlineFsRef = useRef(false);
 
@@ -64,13 +66,14 @@ export default function VideoPlayer() {
     else video.pause();
   }, []);
 
-  const useFallback = useCallback(() => {
+  const applyFallback = useCallback(() => {
     if (src === PRIMARY_SOURCE) {
       setSrc(FALLBACK_SOURCE);
       setFileName("Local sample — primary source unavailable");
       setUsingFallback(true);
       setCurrentTime(0);
       setDuration(0);
+      setSubtitlesOn(false);
     }
   }, [src]);
 
@@ -94,13 +97,13 @@ export default function VideoPlayer() {
     video.addEventListener("durationchange", syncDuration);
 
     // Same race applies to load errors (e.g. a cached 404).
-    if (video.error) useFallback();
+    if (video.error) applyFallback();
 
     return () => {
       video.removeEventListener("loadedmetadata", syncDuration);
       video.removeEventListener("durationchange", syncDuration);
     };
-  }, [src, useFallback]);
+  }, [src, applyFallback]);
 
   const seekTo = (time: number) => {
     const video = videoRef.current;
@@ -115,6 +118,34 @@ export default function VideoPlayer() {
     video.muted = !video.muted;
     setMuted(video.muted);
   };
+
+  const toggleSubtitles = useCallback(() => {
+    const video = videoRef.current;
+    if (!video) return;
+    const track = Array.from(video.textTracks).find(
+      (t) => t.kind === "subtitles",
+    );
+    if (!track) return;
+    const next = track.mode !== "showing";
+    track.mode = next ? "showing" : "disabled";
+    setSubtitlesOn(next);
+  }, []);
+
+  // When the media source changes (e.g. fallback), the browser re-initializes
+  // its text tracks and drops the programmatic mode — re-apply it from state,
+  // including for tracks that arrive late (addtrack).
+  useEffect(() => {
+    const video = videoRef.current;
+    if (!video) return;
+    const sync = () => {
+      for (const t of Array.from(video.textTracks)) {
+        t.mode = subtitlesOn ? "showing" : "disabled";
+      }
+    };
+    sync();
+    video.textTracks.addEventListener("addtrack", sync);
+    return () => video.textTracks.removeEventListener("addtrack", sync);
+  }, [src, subtitlesOn]);
 
   const changeVolume = (value: number) => {
     const video = videoRef.current;
@@ -183,6 +214,9 @@ export default function VideoPlayer() {
         case "m":
           toggleMute();
           break;
+        case "c":
+          toggleSubtitles();
+          break;
         case "f":
           toggleFullscreen();
           break;
@@ -190,7 +224,7 @@ export default function VideoPlayer() {
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [togglePlay]);
+  }, [togglePlay, toggleSubtitles]);
 
   const progress = duration > 0 ? (currentTime / duration) * 100 : 0;
 
@@ -210,9 +244,17 @@ export default function VideoPlayer() {
         onPause={() => setIsPlaying(false)}
         onTimeUpdate={(e) => setCurrentTime(e.currentTarget.currentTime)}
         onLoadedMetadata={(e) => setDuration(e.currentTarget.duration)}
-        onError={useFallback}
+        onError={applyFallback}
         className="aspect-video w-full cursor-pointer bg-black"
       >
+        {!usingFallback && (
+          <track
+            kind="subtitles"
+            src={SUBTITLE_SOURCE}
+            srcLang="en"
+            label="English"
+          />
+        )}
         Your browser does not support the video tag.
       </video>
 
@@ -300,6 +342,19 @@ export default function VideoPlayer() {
             />
             Loop
           </label>
+
+          <button
+            onClick={toggleSubtitles}
+            aria-label={subtitlesOn ? "Turn subtitles off" : "Turn subtitles on"}
+            aria-pressed={subtitlesOn}
+            className={
+              subtitlesOn
+                ? "rounded-md bg-white px-3 py-1 font-semibold text-black transition-colors hover:bg-zinc-200"
+                : "rounded-md border border-zinc-600 px-3 py-1 transition-colors hover:bg-zinc-700"
+            }
+          >
+            CC
+          </button>
 
           <div className="ml-auto flex items-center gap-2">
             <button
