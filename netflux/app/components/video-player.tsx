@@ -2,10 +2,9 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 
-const PRIMARY_SOURCE =
-  "race to the edge\\title_t04\\title_t04.mp4"; // Replace with your primary video source URL
+const PRIMARY_SOURCE = "publicdomain\\attack of the giant leeches\\A1_t00\\A1_t00.mp4"; // Replace with your primary video source URL
 const FALLBACK_SOURCE = "/sample.mp4";
-const SUBTITLE_SOURCE = "race to the edge\\title_t04\\title_t04.vtt";
+const SUBTITLE_SOURCE = "publicdomain\\attack of the giant leeches\\A1_t00\\A1_t00.vtt"; // Replace with your subtitle file URL
 
 function formatTime(seconds: number): string {
   if (!Number.isFinite(seconds)) return "0:00";

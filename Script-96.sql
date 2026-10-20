@@ -12,9 +12,16 @@ FROM kairos.netflux_ffprobe
 
 )
 
-select  * from kairos.netflux_ingestion_queue q 
+select * from kairos.netflux_ingestion_queue q 
 left outer join ffprobe f 
 on q.ID = f.file_id
+left outer join kairos.netflux_queue_media_to_wav mw 
+on q.ID = mw.id_key
+left outer join kairos.netflix_transcriptions t 
+on mw.ID = t.id_key 
+
 
 
 -- select * from kairos.netflux_ffprobe
+-- select * from kairos.netflux_queue_media_to_wav
+-- select * from kairos.netflix_transcriptions
