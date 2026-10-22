@@ -47,7 +47,7 @@ ff.media_id_key,
 ffprobe_json_output_video,
 textranscript,
 segmentend,
-segementstart
+segmentstart
 from kairos.netflux_queue q
 
 left outer join kairos.netflux_queue_media m 

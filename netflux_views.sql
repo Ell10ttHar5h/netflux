@@ -72,6 +72,7 @@ and m.subtitle_pgs_to_png = 0
 and m.subtitle_extract_wav = 1
 and subtitle_wav_transcribe is null
 
+create or replace view kairos.v_netflux_media_parakeet_vtt as 
 with vtt as (
 SELECT
   media_id_key,
@@ -106,7 +107,7 @@ GROUP BY media_id_key
 )
 select 
 m.id as media_id,
-concat(outputpath,'/','','publicdomain','/',parentfolder,'/',medianame,'/',medianame,'.vtt') as inputwav,
+concat(outputpath,'/','','publicdomain','/',parentfolder,'/',medianame,'/',medianame,'.vtt') as outputvtt,
 v.vtt
 
 from kairos.netflux_queue q

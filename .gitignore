@@ -1,3 +1,5 @@
 netflux/public/
 netflux/server.log
 dev.log
+*.exe
+*.pyc
